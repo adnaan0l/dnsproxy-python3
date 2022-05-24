@@ -15,16 +15,19 @@ Runs using multithreaded servers and accept multiples requests.
   ```
   $ docker build -t="dnstls" .
   $ docker run --rm -p 53:53/tcp -p 53:53/udp dnstls
-
+  ```
+  
   You may set new values for configuration (dns server, secure-udp) using the
   flags options.
-  ```
+  
   Options:
-    --dns-server TEXT  Upstream DNS server to query [default: 1.0.0.1]
-    --secure-udp TEXT  Option to send UDP queries over TLS instead of in plain-text [default: true]
-  ```
+  -  --dns-server TEXT  Upstream DNS server to query -   [default: 1.0.0.1]
+  -  --secure-udp TEXT  Option to send UDP queries over TLS instead of in plain-text [default: true]
+  
   Example:
+  ```
   docker run --rm -p 53:53/tcp -p 53:53/udp dnstls --dns-server=cloudflare --secure-udp=true
+  ```
 
 ## Testing
   After start the proxy, you can test a DNS request using Dig.
@@ -36,5 +39,7 @@ Runs using multithreaded servers and accept multiples requests.
   ```
   $ dig @127.0.0.1 google.com +tcp
   ```
-  For multiple requests, run ./tests/queryflood.sh from project root
+  For multiple requests, run from project root 
+  ```
+  ./tests/queryflood.sh 
   ```
