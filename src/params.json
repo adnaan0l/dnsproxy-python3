@@ -1,0 +1,10 @@
+{
+    "host-ip": "0.0.0.0",
+    "daemon-port": 53,
+    "dns-servers": {
+        "cloudflare" : "1.1.1.1",
+        "google" : "8.8.8.8",
+        "default" : "1.0.0.1"
+    },
+    "ca-path" : "/etc/ssl/cert.pem"
+}
