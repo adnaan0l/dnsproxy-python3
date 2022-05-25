@@ -36,10 +36,9 @@ def _send_request_tls(proto, query, dns_server, ca_path):
                 elif proto == 'udp':
                     tcp_msg = "\x00".encode() + chr(len(query)).encode() + query
                     ssock.send(tcp_msg)
+                return ssock.recv(1024)
     except:
         raise
-    else:
-        return ssock.recv(1024)
     finally:
         client_logger.info("Closing connection...")
         ssock.close()
@@ -56,10 +55,9 @@ def _send_request_udp(dns_server, query):
         with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
             sock.settimeout(5)
             sock.sendto(query, (HOST, PORT))
+            return sock.recv(1024)
     except:
         raise
-    else:
-        return sock.recv(1024)
     finally:
         sock.close()
 
