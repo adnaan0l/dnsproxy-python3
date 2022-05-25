@@ -7,59 +7,68 @@ client_logger = logging.getLogger("root.clients")
 
 def _send_request_tls(proto, query, dns_server, ca_path):
     """ 
-    Method to query DNS over TCP secured with TLS
+    Method to query DNS over TCP secured with TLS.
+    Returns the server response.
     """
     try:
-        server = (dns_server, 853)  # default port for cloudflare
+        server = (dns_server, 853)
 
-        # tcp socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sock.settimeout(60)
-
+        # create a ssl context with the TLS protocol
+        # requiring peer certificate verification through a set of loaded CA certs
+        # requiring a peer hostname check
         ssl_ctx = ssl.create_default_context()
         ssl_ctx = ssl.SSLContext(ssl.PROTOCOL_SSLv23)
         ssl_ctx.verify_mode = ssl.CERT_REQUIRED
         ssl_ctx.check_hostname = True
-        print(ca_path)
         ssl_ctx.load_verify_locations(ca_path)
 
-        wrapped_socket = ssl_ctx.wrap_socket(sock, server_hostname=dns_server)
-        wrapped_socket.connect(server)
+        # create a tcp socket
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+            sock.settimeout(60)
+        
+            # wrapping the tcp socket in the configured ssl context
+            with ssl_ctx.wrap_socket(sock, server_hostname=dns_server) as ssock:
+                ssock.connect(server)
 
-        if proto == 'tcp':
-            wrapped_socket.sendall(query)
-        elif proto == 'udp':
-            tcp_msg = "\x00".encode() + chr(len(query)).encode() + query
-            wrapped_socket.send(tcp_msg)
+                # query upstream dns server over a ssl wrapped tcp socket
+                if proto == 'tcp':
+                    ssock.sendall(query)
+                elif proto == 'udp':
+                    tcp_msg = "\x00".encode() + chr(len(query)).encode() + query
+                    ssock.send(tcp_msg)
     except:
         raise
     else:
-        answer = wrapped_socket.recv(1024)
-        return answer
+        return ssock.recv(1024)
     finally:
         client_logger.info("Closing connection...")
-        wrapped_socket.close()
+        ssock.close()
 
 def _send_request_udp(dns_server, query):
     """ 
-    Method to query DNS over UDP
+    Method to query DNS over UDP.
+    Returns the server response.
     """
     try:
         HOST, PORT = (dns_server, 53)
 
-        # udp socket
-        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        sock.settimeout(5)
-        sock.sendto(query, (HOST, PORT))
-        answer = sock.recv(1024)
-        return answer
+        # query upstream dns server over a udp socket on port 53
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            sock.settimeout(5)
+            sock.sendto(query, (HOST, PORT))
     except:
         raise
+    else:
+        return sock.recv(1024)
     finally:
         sock.close()
 
 def _get_rcode(proto, secure_udp, answer):
-    """ Method to check DNS response RCODES """
+    """ 
+    Method to check DNS response RCODES.
+    Logs the RCODE.
+    Returns the server response. 
+    """
     if answer:
         try:
             if (proto == 'tcp') or (proto=='udp' and secure_udp):
@@ -86,7 +95,8 @@ def _get_rcode(proto, secure_udp, answer):
 
 def handler(query, params):
     """
-    Main handler to manage DNS queries over TCP or UDP
+    Main handler to manage DNS queries over TCP or UDP.
+    Returns the server response.
     """
     proto, dns_server, secure_udp, ca_path = params
 

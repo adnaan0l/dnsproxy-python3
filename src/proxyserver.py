@@ -1,4 +1,3 @@
-from asyncio.log import logger
 import sys
 import time
 import logging
@@ -56,7 +55,7 @@ class ThreadedTCPServer(socketserver.ThreadingMixIn, socketserver.TCPServer):
 class ThreadedUDPServer(socketserver.ThreadingMixIn, socketserver.UDPServer):
     """
     This creates a Threading UDP server which handles
-    each DNS query via UDP in a seperate thread.
+    each DNS query over UDP in a seperate thread.
     """
     pass
 
