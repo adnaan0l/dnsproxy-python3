@@ -14,7 +14,7 @@ RUN mkdir logs
 RUN touch logs/info.log
 RUN touch logs/error.log
 
-COPY src ./
+COPY source ./
 
 EXPOSE 53/tcp 53/udp
 
