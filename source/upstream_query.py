@@ -61,7 +61,7 @@ def _send_request_udp(dns_server, query):
     finally:
         sock.close()
 
-def _get_rcode(proto, secure_udp, answer):
+def _parse_response(proto, secure_udp, answer):
     """ 
     Method to check DNS response RCODES.
     Logs the RCODE.
@@ -106,4 +106,4 @@ def handler(query, params):
         client_logger.error('Invalid value for Proto')
         pass
 
-    return _get_rcode(proto, secure_udp, answer)
+    return _parse_response(proto, secure_udp, answer)
